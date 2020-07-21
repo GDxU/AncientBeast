@@ -1,3 +1,72 @@
+#gameTitle {
+	display: block;
+	margin: auto;
+	width: 555px;
+
+	div {
+		height: 125px;
+		background-image: url('~assets/interface/AncientBeast.png');
+		background-repeat: no-repeat;
+		margin-top: 20px;
+	}
+
+	&:hover {
+		filter: brightness(120%);
+	}
+}
+
+#websiteButton {
+	display: none;
+}
+
+#contribute {
+	display: none;
+}
+
+#matchMaking {
+	width: 100%;
+	height: 100%;
+	min-height: 510px;
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 98;
+	text-align: center;
+	background: black url('~assets/interface/Reaper.jpg') no-repeat center top;
+	background-size: cover;
+	color: white;
+
+	#loader {
+		width: 200px;
+		height: 50px;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		margin-left: -100px;
+		margin-top: -2px;
+		line-height: 50px;
+		font-size: 40px;
+		display: none;
+
+		#barLoader {
+			position: relative;
+			margin-left: -60px;
+			background-image: url('~assets/interface/loadingEmpty.png');
+			background-repeat: no-repeat;
+			height: 54px;
+			width: 355px;
+
+			.progress {
+				display: block;
+				height: 100vh;
+				width: 0;
+				background-image: url('~assets/interface/loadingFull.png');
+				background-repeat: no-repeat;
+			}
+		}
+	}
+}
+
 body {
 	background: black url('~assets/interface/skulls.jpg') repeat;
 	margin: 0;
@@ -7,26 +76,10 @@ body {
 }
 
 * {
-	-webkit-touch-callout: none;
-	-webkit-user-select: none;
-	-moz-user-select: moz-none;
 	user-select: none;
 }
 
 @keyframes fading {
-	0% {
-		opacity: 1;
-	}
-
-	50% {
-		opacity: 0.1;
-	}
-
-	100% {
-		opacity: 1;
-	}
-}
-@-webkit-keyframes fading {
 	0% {
 		opacity: 1;
 	}
@@ -54,8 +107,8 @@ body {
 		align-items: center;
 
 		.setupFrame {
-			border: 40px solid transparent !important;
-			border-image: url('~assets/interface/div.png') 40 fill stretch !important;
+			border: 40px solid transparent;
+			border-image: url('~assets/interface/div.png') 40 fill stretch;
 			background: none;
 			position: relative;
 			overflow: visible;
@@ -102,7 +155,7 @@ body {
 							background: #292929;
 							font-weight: bold;
 							color: #f55;
-							z-index: 9999;
+							z-index: 99;
 						}
 
 						&:focus + label {
@@ -150,7 +203,7 @@ body {
 			}
 		}
 
-		.startButtonWrapper {
+		#startButtonWrapper {
 			font-size: 1.5em;
 			text-shadow: 2px 2px black;
 
@@ -158,7 +211,6 @@ body {
 				padding: 0;
 				font-weight: bold;
 				animation: fading 2.5s infinite;
-				-webkit-animation: fading 2.5s infinite;
 			}
 
 			#startButton {
@@ -183,5 +235,154 @@ body {
 				}
 			}
 		}
+	}
+}
+
+#start {
+	display: none;
+}
+
+#version {
+	display: block;
+	width: 100px;
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	z-index: 100;
+
+	div {
+		height: 100px;
+		background: url('~assets/interface/AB.png') no-repeat;
+		background-size: cover;
+	}
+
+	&:hover {
+		filter: brightness(120%);
+	}
+}
+
+#discord {
+	display: block;
+	width: 100px;
+	position: fixed;
+	left: 0;
+	bottom: 0;
+	z-index: 100;
+
+	div {
+		height: 100px;
+		background-color: rgba(0, 0, 0, 0.55);
+		background-image: url('~assets/interface/frame.png'), url('~assets/icons/discord.svg');
+		background-size: cover;
+	}
+}
+
+a {
+	color: white;
+	text-shadow: 2px 2px black;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+@media (max-height: 555px) {
+	#discord {
+		display: none;
+	}
+
+	#matchMaking {
+		background: black url('~assets/interface/skulls.jpg') repeat;
+	}
+
+	#gameTitle {
+		display: none;
+	}
+
+	#websiteButton {
+		display: block;
+		width: 100px;
+		position: fixed;
+		padding: none;
+		left: 0;
+
+		div {
+			display: block;
+			background-image: url('~assets/interface/AB.png');
+			background-repeat: no-repeat;
+			background-size: cover;
+			height: 100px;
+		}
+
+		&:hover {
+			filter: brightness(120%);
+		}
+
+		span {
+			text-shadow: 0.1em 0.1em 0.1em #000, 0 0 0.7em red;
+		}
+	}
+
+	#contribute {
+		display: block;
+		position: fixed;
+		bottom: 0;
+		z-index: 100;
+
+		div {
+			background: url('~assets/interface/Swampler.gif');
+			background-repeat: no-repeat;
+			width: 144px;
+			height: 195px;
+		}
+
+		&:hover {
+			filter: brightness(120%);
+		}
+	}
+
+	.setupFrame div {
+		border: none;
+	}
+
+	#startButtonWrapper {
+		display: none;
+	}
+
+	#start {
+		display: block;
+		width: 100px;
+		position: fixed;
+		right: 0;
+		top: 50%;
+		transform: translateY(-50%);
+		z-index: 100;
+
+		button {
+			display: block;
+			width: 100px;
+			height: 100px;
+			border: none;
+			cursor: pointer;
+			background-color: rgba(0, 0, 0, 0.55);
+			background-image: url('~assets/interface/frame.png'), url('~assets/icons/start.svg');
+			background-repeat: no-repeat;
+			background-size: cover;
+		}
+
+		span {
+			animation: fading 2.5s infinite;
+		}
+	}
+
+	#version div {
+		background-color: rgba(0, 0, 0, 0.55);
+		background-image: url('~assets/interface/frame.png'), url('~assets/icons/version.svg');
+		background-size: cover;
+		background-repeat: no-repeat;
+	}
+}
+
+@media (max-height: 445px) {
+	.setupFrame {
+		border: none !important;
 	}
 }

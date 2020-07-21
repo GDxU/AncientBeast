@@ -7,7 +7,7 @@ import { Creature } from '../creature';
  * @param {Object} G the game object
  * @return {void}
  */
-export default G => {
+export default (G) => {
 	G.abilities[0] = [
 		// 	First Ability: Plasma Field
 		{
@@ -15,14 +15,13 @@ export default G => {
 			trigger: 'onUnderAttack',
 
 			// 	require() :
-			require: function() {
-				this.setUsed(false); // Can be triggered multiple times
+			require: function () {
 				this.creature.protectedFromFatigue = this.testRequirements();
 				return this.creature.protectedFromFatigue;
 			},
 
 			//	activate() :
-			activate: function(damage) {
+			activate: function (damage) {
 				if (G.activeCreature.id == this.creature.id) {
 					/* only used when unit isn't active */
 					return damage; // Return Damage
@@ -33,11 +32,11 @@ export default G => {
 					let counter = new Damage(
 						this.creature, // Attacker
 						{
-							pure: 9
+							pure: 9,
 						}, // Damage Type
 						1, // Area
 						[], // Effects
-						G
+						G,
 					);
 					counter.counter = true;
 					G.activeCreature.takeDamage(counter);
@@ -48,7 +47,7 @@ export default G => {
 				this.creature.protectedFromFatigue = this.testRequirements();
 
 				damage.damages = {
-					total: 0
+					total: 0,
 				};
 				damage.status = 'Shielded';
 				damage.effect = [];
@@ -59,7 +58,7 @@ export default G => {
 
 				G.log('%CreatureName' + this.creature.id + '% is protected by Plasma Field');
 				return damage; // Return Damage
-			}
+			},
 		},
 
 		// 	Second Ability: Electro Shocker
@@ -70,13 +69,13 @@ export default G => {
 			_targetTeam: Team.enemy,
 
 			// 	require() :
-			require: function() {
+			require: function () {
 				if (!this.testRequirements()) {
 					return false;
 				}
 				if (
 					!this.atLeastOneTarget(this.creature.adjacentHexes(this.isUpgraded() ? 4 : 1), {
-						team: this._targetTeam
+						team: this._targetTeam,
 					})
 				) {
 					return false;
@@ -85,28 +84,28 @@ export default G => {
 			},
 
 			// 	query() :
-			query: function() {
+			query: function () {
 				let ability = this;
 				let dpriest = this.creature;
 
 				G.grid.queryCreature({
-					fnOnConfirm: function() {
+					fnOnConfirm: function () {
 						ability.animation(...arguments);
 					},
 					team: this._targetTeam,
 					id: dpriest.id,
 					flipped: dpriest.player.flipped,
-					hexes: dpriest.adjacentHexes(this.isUpgraded() ? 4 : 1)
+					hexes: dpriest.adjacentHexes(this.isUpgraded() ? 4 : 1),
 				});
 			},
 
 			//	activate() :
-			activate: function(target) {
+			activate: function (target) {
 				let ability = this;
 				ability.end();
 
 				let damageAmount = {
-					shock: 12 * target.size
+					shock: 12 * target.size,
 				};
 
 				let damage = new Damage(
@@ -114,11 +113,11 @@ export default G => {
 					damageAmount, // Damage Type
 					1, // Area
 					[], // Effects
-					G
+					G,
 				);
 
 				target.takeDamage(damage);
-			}
+			},
 		},
 
 		// 	Third Ability: Disruptor Beam
@@ -129,7 +128,7 @@ export default G => {
 			_targetTeam: Team.enemy,
 
 			// 	require() :
-			require: function() {
+			require: function () {
 				if (!this.testRequirements()) {
 					return false;
 				}
@@ -139,7 +138,7 @@ export default G => {
 				// At least one target
 				if (
 					!this.atLeastOneTarget(range, {
-						team: this._targetTeam
+						team: this._targetTeam,
 					})
 				) {
 					return false;
@@ -149,7 +148,7 @@ export default G => {
 				let lowestCost = 99;
 				let targets = this.getTargets(range);
 
-				targets.forEach(function(item) {
+				targets.forEach(function (item) {
 					if (item.target instanceof Creature) {
 						if (lowestCost > item.target.size) {
 							lowestCost = item.target.size;
@@ -166,26 +165,26 @@ export default G => {
 			},
 
 			// 	query() :
-			query: function() {
+			query: function () {
 				let ability = this;
 				let dpriest = this.creature;
 
 				G.grid.queryCreature({
-					fnOnConfirm: function() {
+					fnOnConfirm: function () {
 						ability.animation(...arguments);
 					},
-					optTest: function(creature) {
+					optTest: function (creature) {
 						return creature.size <= dpriest.player.plasma;
 					},
 					team: this._targetTeam,
 					id: dpriest.id,
 					flipped: dpriest.player.flipped,
-					hexes: dpriest.adjacentHexes(2)
+					hexes: dpriest.adjacentHexes(2),
 				});
 			},
 
 			//	activate() :
-			activate: function(target) {
+			activate: function (target) {
 				let ability = this;
 				ability.end();
 
@@ -201,17 +200,17 @@ export default G => {
 				damage = new Damage(
 					ability.creature, // Attacker
 					{
-						pure: damage
+						pure: damage,
 					}, // Damage Type
 					1, // Area
 					[], // Effects
-					G
+					G,
 				);
 
 				ability.end();
 
 				target.takeDamage(damage);
-			}
+			},
 		},
 
 		// 	Fourth Ability: Godlet Printer
@@ -220,7 +219,7 @@ export default G => {
 			trigger: 'onQuery',
 
 			// 	require() :
-			require: function() {
+			require: function () {
 				if (!this.testRequirements()) {
 					return false;
 				}
@@ -239,7 +238,7 @@ export default G => {
 			summonRange: 4,
 
 			// 	query() :
-			query: function() {
+			query: function () {
 				if (this.isUpgraded()) {
 					this.summonRange = 6;
 				}
@@ -249,61 +248,61 @@ export default G => {
 				G.UI.toggleDash('randomize');
 			},
 
-			fnOnSelect: function(hex, args) {
-				let crea = G.retreiveCreatureStats(args.creature);
+			fnOnSelect: function (hex, args) {
+				let crea = G.retrieveCreatureStats(args.creature);
 				G.grid.previewCreature(hex.pos, crea, this.creature.player);
 			},
 
 			// Callback function to queryCreature
-			materialize: function(creature) {
-				let crea = G.retreiveCreatureStats(creature);
+			materialize: function (creature) {
+				let crea = G.retrieveCreatureStats(creature);
 				let ability = this;
 				let dpriest = this.creature;
 
-				G.grid.forEachHex(function(hex) {
+				G.grid.forEachHex(function (hex) {
 					hex.unsetReachable();
 				});
 
 				let spawnRange = dpriest.hexagons[0].adjacentHex(this.summonRange);
 
-				spawnRange.forEach(function(item) {
+				spawnRange.forEach(function (item) {
 					item.setReachable();
 				});
 
-				spawnRange = spawnRange.filter(function(item) {
+				spawnRange = spawnRange.filter(function (item) {
 					return item.isWalkable(crea.size, 0, false);
 				});
 
 				spawnRange = arrayUtils.extendToLeft(spawnRange, crea.size, G.grid);
 
 				G.grid.queryHexes({
-					fnOnSelect: function() {
+					fnOnSelect: function () {
 						ability.fnOnSelect(...arguments);
 					},
-					fnOnCancel: function() {
+					fnOnCancel: function () {
 						G.activeCreature.queryMove();
 					},
-					fnOnConfirm: function() {
+					fnOnConfirm: function () {
 						ability.animation(...arguments);
 					},
 					args: {
 						creature: creature,
-						cost: crea.size - 0 + (crea.level - 0)
+						cost: crea.size - 0 + (crea.level - 0),
 					}, // OptionalArgs
 					size: crea.size,
 					flipped: dpriest.player.flipped,
-					hexes: spawnRange
+					hexes: spawnRange,
 				});
 			},
 
 			//	activate() :
-			activate: function(hex, args) {
+			activate: function (hex, args) {
 				let creature = args.creature;
 				let ability = this;
 
 				let pos = {
 					x: hex.x,
-					y: hex.y
+					y: hex.y,
 				};
 
 				ability.creature.player.plasma -= args.cost;
@@ -314,7 +313,7 @@ export default G => {
 
 				ability.creature.player.summon(creature, pos);
 				ability.creature.queryMove();
-			}
-		}
+			},
+		},
 	];
 };

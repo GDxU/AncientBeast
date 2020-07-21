@@ -11,9 +11,14 @@ export class Button {
 		this.game = game;
 
 		let defaultOpts = {
-			click: function() {},
-			mouseover: function() {},
-			mouseleave: function() {},
+			click: function () {},
+			mouseover: function () {},
+			mouseleave: function () {},
+			touchstart: function () {},
+			touchend: function () {},
+			touchX: 0,
+			touchY: 0,
+			hasShortcut: false,
 			clickable: true,
 			state: 'normal', // disabled, normal, glowing, selected, active
 			$button: undefined,
@@ -23,8 +28,9 @@ export class Button {
 				glowing: {},
 				selected: {},
 				active: {},
-				normal: {}
-			}
+				normal: {},
+				slideIn: {},
+			},
 		};
 
 		opts = $j.extend(defaultOpts, opts);
@@ -40,6 +46,8 @@ export class Button {
 		this.$button
 			.unbind('click')
 			.unbind('mouseover')
+			.unbind('touchstart')
+			.unbind('touchend')
 			.unbind('mouseleave');
 
 		if (state != 'disabled') {
@@ -57,6 +65,10 @@ export class Button {
 				return;
 			}
 
+			if (this.hasShortcut) {
+				this.$button.addClass('hover');
+			}
+
 			this.mouseover();
 		});
 
@@ -65,10 +77,47 @@ export class Button {
 				return;
 			}
 
+			if (this.hasShortcut) {
+				this.$button.removeClass('hover');
+			}
+
 			this.mouseleave();
 		});
 
-		this.$button.removeClass('disabled glowing selected active noclick');
+		this.$button.bind('touchstart', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+
+			if (game.freezedInput || !this.clickable) {
+				return;
+			}
+
+			if (this.hasShortcut) {
+				this.$button.addClass('hover');
+			}
+
+			this.touchX = event.changedTouches[0].pageX;
+			this.touchY = event.changedTouches[0].pageY;
+		});
+
+		this.$button.bind('touchend', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+
+			if (game.freezedInput || !this.clickable) {
+				return;
+			}
+
+			if (this.hasShortcut) {
+				this.$button.removeClass('hover');
+			}
+
+			if (this.shouldTriggerClick(event.changedTouches[0]) && this.state != 'disabled') {
+				this.click();
+			}
+		});
+
+		this.$button.removeClass('disabled glowing selected active noclick slideIn');
 		this.$button.css(this.css.normal);
 
 		if (state != 'normal') {
@@ -99,5 +148,17 @@ export class Button {
 		}
 
 		this.mouseleave();
+	}
+
+	shouldTriggerClick(changedTouches) {
+		const endTouchX = changedTouches.pageX;
+		const endTouchY = changedTouches.pageY;
+		let result = false;
+
+		if (Math.abs(this.touchX - endTouchX) < 50 && Math.abs(this.touchY - endTouchY) < 50) {
+			result = true;
+		}
+
+		return result;
 	}
 }

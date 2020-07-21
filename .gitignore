@@ -1,7 +1,8 @@
 ### Ancient Beast ###
-# generated files
+# Generated files
 deploy/
-src/manifest.js
+# List of assets
+src/assets.js
 
 # DS_STORE FILES
 .DS_Store
@@ -102,6 +103,12 @@ Desktop.ini
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
 
+# Theia IDE https://theia-ide.org
+.theia/
+
+# VSCode IDE https://code.visualstudio.com
+.vscode/
+
 # Windows Installer files
 *.cab
 *.msi
@@ -111,6 +118,3 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 /.vs
-
-# VSCode
-.vscode/

@@ -16,6 +16,12 @@ export class Chat {
 		this.$chat.bind('click', () => {
 			game.UI.chat.toggle();
 		});
+		this.$chat.bind('mouseenter', () => {
+			game.UI.chat.peekOpen();
+		});
+		this.$chat.bind('mouseleave', () => {
+			game.UI.chat.peekClose();
+		});
 		this.messages = [];
 		this.isOpen = false;
 
@@ -36,8 +42,25 @@ export class Chat {
 
 	toggle() {
 		this.$chat.toggleClass('focus');
+		if (this.$chat.hasClass('peek')) {
+			this.$chat.removeClass('peek');
+		}
 		this.$content.parent().scrollTop(this.$content.height());
 		this.isOpen = !this.isOpen;
+	}
+
+	peekOpen() {
+		if (this.$chat.hasClass('focus') === false) {
+			this.$chat.addClass('peek');
+			this.$content.parent().scrollTop(this.$content.height());
+			this.isOpen = !this.isOpen;
+		}
+	}
+
+	peekClose() {
+		if (this.$chat.hasClass('peek')) {
+			this.$chat.removeClass('peek');
+		}
 	}
 
 	getCurrentTime() {
@@ -72,7 +95,7 @@ export class Chat {
 			lastMessage.amount++;
 			lastMessage.time = currentTime;
 			$j(lastMessage.DOMObject).html(
-				this.createHTMLTemplate(msg, lastMessage.amount, currentTime, false)
+				this.createHTMLTemplate(msg, lastMessage.amount, currentTime, false),
 			);
 		} else {
 			this.messages.push({
@@ -80,7 +103,7 @@ export class Chat {
 				amount: 1,
 				time: currentTime,
 				class: htmlClass,
-				DOMObject: $j.parseHTML(this.createHTMLTemplate(msg, 1, currentTime, true, htmlClass))
+				DOMObject: $j.parseHTML(this.createHTMLTemplate(msg, 1, currentTime, true, htmlClass)),
 			});
 
 			// Append the last message's DOM object

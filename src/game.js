@@ -59,7 +59,7 @@ export default class Game {
 		this.creatures = [];
 		this.effects = [];
 		this.activeCreature = {
-			id: 0
+			id: 0,
 		};
 		this.preventSetup = false;
 		this.animations = new Animations(this);
@@ -77,27 +77,6 @@ export default class Game {
 		this.gamelog = new GameLog(null, this);
 		this.debugMode = false;
 		this.realms = ['A', 'E', 'G', 'L', 'P', 'S', 'W'];
-		this.loadedCreatures = [
-			0, // Dark Priest
-			37, // Swine Thug
-			3, // Uncle Fungus
-			4, // Magma Spawn
-			45, // Chimera
-			12, // Snow Bunny
-			5, // Impaler
-			14, // Gumble
-			7, // Abolished
-			40, // Nutcase
-			9, // Nightmare
-			39, // Headless
-			44, // Scavenger
-			31, // Cyber Hound
-			28, // Stomper
-			6, // Ice Demon
-			33 // Golden Wyrm
-			//22, // Lava Mollusk
-			//42, // Night Stalker
-		];
 		this.availableMusic = [];
 		this.soundEffects = [
 			'sounds/step',
@@ -105,7 +84,8 @@ export default class Game {
 			'sounds/swing2',
 			'sounds/swing3',
 			'sounds/heartbeat',
-			'sounds/drums'
+			'sounds/drums',
+			'sounds/upgrade',
 		];
 		this.inputMethod = 'Mouse';
 
@@ -117,7 +97,7 @@ export default class Game {
 		// Phaser
 		this.Phaser = new Phaser.Game(1920, 1080, Phaser.AUTO, 'combatwrapper', {
 			update: this.phaserUpdate.bind(this),
-			render: this.phaserRender.bind(this)
+			render: this.phaserRender.bind(this),
 		});
 
 		// Messages
@@ -133,13 +113,21 @@ export default class Game {
 				notEnough: 'Not enough %stat%.',
 				notMoveable: 'This creature cannot be moved.',
 				passiveCycle: 'Switches between any usable abilities.',
-				passiveUnavailable: 'No usable abilities to switch to.'
+				passiveUnavailable: 'No usable abilities to switch to.',
 			},
 			ui: {
 				dash: {
-					materializeOverload: 'Overload! Maximum number of units controlled'
-				}
-			}
+					materializeOverload: 'Overload! Maximum number of units controlled',
+					selectUnit: 'Please select an available unit from the left grid',
+					lowPlasma: 'Low Plasma! Cannot materialize the selected unit',
+					// plasmaCost :    String :    plasma cost of the unit to materialize
+					materializeUnit: (plasmaCost) => {
+						return 'Materialize unit at target location for ' + plasmaCost + ' plasma';
+					},
+					materializeUsed: 'Materialization has already been used this round',
+					heavyDev: 'This unit is currently under heavy development',
+				},
+			},
 		};
 
 		/* Regex Test for triggers */
@@ -177,7 +165,7 @@ export default class Game {
 
 			onStartOfRound: /\bonStartOfRound\b/,
 			onQuery: /\bonQuery\b/,
-			oncePerDamageChain: /\boncePerDamageChain\b/
+			oncePerDamageChain: /\boncePerDamageChain\b/,
 		};
 	}
 
@@ -186,7 +174,11 @@ export default class Game {
 
 		this.creatureData = data;
 
-		data.forEach(creature => {
+		data.forEach((creature) => {
+			if (!creature.playable) {
+				return;
+			}
+
 			let creatureId = creature.id,
 				realm = creature.realm,
 				level = creature.level,
@@ -197,10 +189,6 @@ export default class Game {
 
 			creature.type = type;
 
-			if (this.loadedCreatures.indexOf(creatureId) === -1) {
-				// No need to load sounds and artwork
-				return;
-			}
 			// Load unit shouts
 			this.soundsys.getSound(getUrl('units/shouts/' + name), 1000 + creatureId);
 
@@ -211,7 +199,7 @@ export default class Game {
 				for (i = 0, count = dpcolor.length; i < count; i++) {
 					this.Phaser.load.image(
 						name + dpcolor[i] + '_cardboard',
-						getUrl('units/cardboards/' + name + ' ' + dpcolor[i])
+						getUrl('units/cardboards/' + name + ' ' + dpcolor[i]),
 					);
 					this.getImage(getUrl('units/avatars/' + name + ' ' + dpcolor[i]));
 				}
@@ -219,7 +207,7 @@ export default class Game {
 				if (creature.drop) {
 					this.Phaser.load.image(
 						'drop_' + creature.drop.name,
-						getUrl('drops/' + creature.drop.name)
+						getUrl('drops/' + creature.drop.name),
 					);
 				}
 
@@ -267,12 +255,12 @@ export default class Game {
 			this.Phaser.load.image('p' + i + '_plasma', getUrl('interface/capsule_' + playerColors[i]));
 			this.Phaser.load.image(
 				'p' + i + '_frozen',
-				getUrl('interface/rectangle_frozen_' + playerColors[i])
+				getUrl('interface/rectangle_frozen_' + playerColors[i]),
 			);
 		}
 
 		// Ability SFX
-		this.Phaser.load.audio('MagmaSpawn0', getUrl('units/sfx/Magma Spawn 0'));
+		this.Phaser.load.audio('MagmaSpawn0', getUrl('units/sfx/Infernal 0'));
 
 		// Grid
 		this.Phaser.load.image('hex', getUrl('interface/hex'));
@@ -290,20 +278,20 @@ export default class Game {
 		this.Phaser.load.image('trap_mud-bath', getUrl('units/sprites/Swine Thug - Mud Bath'));
 		this.Phaser.load.image(
 			'trap_scorched-ground',
-			getUrl('units/sprites/Magma Spawn - Scorched Ground')
+			getUrl('units/sprites/Infernal - Scorched Ground'),
 		);
-		this.Phaser.load.image('trap_firewall', getUrl('units/sprites/Magma Spawn - Scorched Ground'));
+		this.Phaser.load.image('trap_firewall', getUrl('units/sprites/Infernal - Scorched Ground'));
 		this.Phaser.load.image('trap_poisonous-vine', getUrl('units/sprites/Impaler - Poisonous Vine'));
 
 		// Effects
 		this.Phaser.load.image('effects_fiery-touch', getUrl('units/sprites/Abolished - Fiery Touch'));
 		this.Phaser.load.image(
 			'effects_fissure-vent',
-			getUrl('units/sprites/Magma Spawn - Scorched Ground')
+			getUrl('units/sprites/Infernal - Scorched Ground'),
 		);
 		this.Phaser.load.image(
 			'effects_freezing-spit',
-			getUrl('units/sprites/Snow Bunny - Freezing Spit')
+			getUrl('units/sprites/Snow Bunny - Freezing Spit'),
 		);
 
 		// Background
@@ -453,25 +441,25 @@ export default class Game {
 					case 0:
 						pos = {
 							x: 0,
-							y: 1
+							y: 1,
 						};
 						break;
 					case 1:
 						pos = {
 							x: 15,
-							y: 1
+							y: 1,
 						};
 						break;
 					case 2:
 						pos = {
 							x: 0,
-							y: 7
+							y: 7,
 						};
 						break;
 					case 3:
 						pos = {
 							x: 15,
-							y: 7
+							y: 7,
 						};
 						break;
 				}
@@ -481,13 +469,13 @@ export default class Game {
 					case 0:
 						pos = {
 							x: 0,
-							y: 4
+							y: 4,
 						};
 						break;
 					case 1:
 						pos = {
 							x: 14,
-							y: 4
+							y: 4,
 						};
 						break;
 				}
@@ -632,12 +620,12 @@ export default class Game {
 						this.log('It uses a plasma field to protect itself');
 						this.log('Its portrait is displayed in the upper left');
 						this.log("Under the portrait are the unit's abilities");
-						this.log('The ones with flashing icons are usable');
-						this.log('Use the last one to materialize a unit');
+						this.log('The ones with revealed icons are usable');
+						this.log('Use the last one to materialize a creature');
 						this.log('Making units drains your plasma points');
 						this.log('Press the hourglass icon to skip the turn');
 						this.log(
-							'%CreatureName' + this.activeCreature.id + '%, press here to toggle tutorial!'
+							'%CreatureName' + this.activeCreature.id + '%, press here to toggle tutorial!',
 						);
 					}
 
@@ -675,11 +663,11 @@ export default class Game {
 			if (creature instanceof Creature) {
 				stringConsole = stringConsole.replace(
 					'%CreatureName' + i + '%',
-					creature.player.name + "'s " + creature.name
+					creature.player.name + "'s " + creature.name,
 				);
 				stringLog = stringLog.replace(
 					'%CreatureName' + i + '%',
-					"<span class='" + creature.player.color + "'>" + creature.name + '</span>'
+					"<span class='" + creature.player.color + "'>" + creature.name + '</span>',
 				);
 			}
 		}
@@ -715,16 +703,17 @@ export default class Game {
 
 		o = $j.extend(
 			{
-				callback: function() {},
+				callback: function () {},
 				noTooltip: false,
-				tooltip: 'Skipped'
+				tooltip: 'Skipped',
 			},
-			o
+			o,
 		);
 
 		this.turnThrottle = true;
 		this.UI.btnSkipTurn.changeState('disabled');
 		this.UI.btnDelay.changeState('disabled');
+		this.UI.btnAudio.changeState('disabled');
 
 		if (!o.noTooltip) {
 			this.activeCreature.hint(o.tooltip, 'msg_effects');
@@ -775,9 +764,9 @@ export default class Game {
 
 		o = $j.extend(
 			{
-				callback: function() {}
+				callback: function () {},
 			},
-			o
+			o,
 		);
 
 		this.turnThrottle = true;
@@ -792,7 +781,7 @@ export default class Game {
 				this.activeCreature.delayable &&
 				!this.queue.isCurrentEmpty()
 			) {
-				this.UI.btnDelay.changeState('normal');
+				this.UI.btnDelay.changeState('slideIn');
 			}
 
 			o.callback.apply();
@@ -870,7 +859,7 @@ export default class Game {
 					this.UI.btnToggleDash.changeState('glowing');
 					this.activeCreature.hint(
 						Math.ceil(this.turnTimePool - (date - p.startTime) / 1000),
-						msgStyle
+						msgStyle,
 					);
 				}
 			}
@@ -885,7 +874,7 @@ export default class Game {
 					this.UI.btnToggleDash.changeState('glowing');
 					this.activeCreature.hint(
 						Math.ceil(this.turnTimePool - (date - p.startTime) / 1000),
-						msgStyle
+						msgStyle,
 					);
 				}
 			}
@@ -905,20 +894,20 @@ export default class Game {
 					this.UI.btnToggleDash.changeState('glowing');
 					this.activeCreature.hint(
 						Math.ceil(this.turnTimePool - (date - p.startTime) / 1000),
-						msgStyle
+						msgStyle,
 					);
 				}
 			}
 		}
 	}
 
-	/* retreiveCreatureStats(type)
+	/* retrieveCreatureStats(type)
 	 *
 	 * type :	String :	Creature's type (ex: "0" for Dark Priest and "L2" for Magma Spawn)
 	 *
 	 * Query the database for creature stats
 	 */
-	retreiveCreatureStats(type) {
+	retrieveCreatureStats(type) {
 		let totalCreatures = this.creatureData.length,
 			i;
 
@@ -933,7 +922,7 @@ export default class Game {
 		let [triggeredCreature, required] = arg;
 
 		// For triggered creature
-		triggeredCreature.abilities.forEach(ability => {
+		triggeredCreature.abilities.forEach((ability) => {
 			if (triggeredCreature.dead === true) {
 				return;
 			}
@@ -946,12 +935,12 @@ export default class Game {
 		});
 
 		// For other creatures
-		this.creatures.forEach(creature => {
+		this.creatures.forEach((creature) => {
 			if (triggeredCreature === creature || creature.dead === true) {
 				return;
 			}
 
-			creature.abilities.forEach(ability => {
+			creature.abilities.forEach((ability) => {
 				if (this.triggers[trigger + '_other'].test(ability.getTrigger())) {
 					if (ability.require(required)) {
 						retValue = ability.animation(required, triggeredCreature);
@@ -967,7 +956,7 @@ export default class Game {
 		let [triggeredCreature, required] = arg;
 
 		// For triggered creature
-		triggeredCreature.effects.forEach(effect => {
+		triggeredCreature.effects.forEach((effect) => {
 			if (triggeredCreature.dead === true) {
 				return;
 			}
@@ -978,13 +967,13 @@ export default class Game {
 		});
 
 		// For other creatures
-		this.creatures.forEach(creature => {
+		this.creatures.forEach((creature) => {
 			if (creature instanceof Creature) {
 				if (triggeredCreature === creature || creature.dead === true) {
 					return;
 				}
 
-				creature.effects.forEach(effect => {
+				creature.effects.forEach((effect) => {
 					if (this.triggers[trigger + '_other'].test(effect.trigger)) {
 						retValue = effect.activate(required);
 					}
@@ -998,7 +987,7 @@ export default class Game {
 	triggerTrap(trigger, arg) {
 		let [triggeredCreature] = arg;
 
-		triggeredCreature.hexagons.forEach(hex => {
+		triggeredCreature.hexagons.forEach((hex) => {
 			hex.activateTrap(this.triggers[trigger], triggeredCreature);
 		});
 	}
@@ -1118,14 +1107,14 @@ export default class Game {
 		// Looks for traps owned by this creature and destroy them
 		this.grid.traps
 			.filter(
-				trap => trap.turnLifetime > 0 && trap.fullTurnLifetime && trap.ownerCreature == creature
+				(trap) => trap.turnLifetime > 0 && trap.fullTurnLifetime && trap.ownerCreature == creature,
 			)
-			.forEach(trap => trap.destroy());
+			.forEach((trap) => trap.destroy());
 
 		// Look for effects owned by this creature and destroy them if necessary
 		this.effects
-			.filter(effect => effect.owner === creature && effect.deleteOnOwnerDeath)
-			.forEach(effect => {
+			.filter((effect) => effect.owner === creature && effect.deleteOnOwnerDeath)
+			.forEach((effect) => {
 				effect.deleteEffect();
 				// Update UI in case effect changes it
 				if (effect.target) {
@@ -1172,9 +1161,9 @@ export default class Game {
 			o2 = $j.extend(
 				{
 					team: -1, // No team
-					type: '--' // Dark Priest
+					type: '--', // Dark Priest
 				},
-				o
+				o,
 			),
 			creatures = this.creatures,
 			totalCreatures = creatures.length,
@@ -1189,7 +1178,7 @@ export default class Game {
 			if (creature instanceof Creature) {
 				match = true;
 
-				$j.each(o2, function(key, val) {
+				$j.each(o2, function (key, val) {
 					if (key == 'team') {
 						if (val == -1) {
 							return;
@@ -1265,7 +1254,7 @@ export default class Game {
 			// No fleeing
 			if (!this.players[i].hasFled) {
 				this.players[i].score.push({
-					type: 'nofleeing'
+					type: 'nofleeing',
 				});
 			}
 
@@ -1276,12 +1265,12 @@ export default class Game {
 					if (this.players[i].creatures[j].type != '--') {
 						this.players[i].score.push({
 							type: 'creaturebonus',
-							creature: this.players[i].creatures[j]
+							creature: this.players[i].creatures[j],
 						});
 					} else {
 						// Dark Priest Bonus
 						this.players[i].score.push({
-							type: 'darkpriestbonus'
+							type: 'darkpriestbonus',
 						});
 					}
 				} else {
@@ -1293,7 +1282,7 @@ export default class Game {
 			if (immortal && this.players[i].creatures.length > 1) {
 				// At least 1 creature summoned
 				this.players[i].score.push({
-					type: 'immortal'
+					type: 'immortal',
 				});
 			}
 		}
@@ -1303,7 +1292,7 @@ export default class Game {
 
 	action(o, opt) {
 		let defaultOpt = {
-			callback: function() {}
+			callback: function () {},
 		};
 
 		opt = $j.extend(defaultOpt, opt);
@@ -1312,22 +1301,22 @@ export default class Game {
 		switch (o.action) {
 			case 'move':
 				this.activeCreature.moveTo(this.grid.hexes[o.target.y][o.target.x], {
-					callback: opt.callback
+					callback: opt.callback,
 				});
 				break;
 			case 'skip':
 				this.skipTurn({
-					callback: opt.callback
+					callback: opt.callback,
 				});
 				break;
 			case 'delay':
 				this.delayCreature({
-					callback: opt.callback
+					callback: opt.callback,
 				});
 				break;
 			case 'flee':
 				this.activeCreature.player.flee({
-					callback: opt.callback
+					callback: opt.callback,
 				});
 				break;
 			case 'ability': {
@@ -1337,7 +1326,7 @@ export default class Game {
 					args.unshift(this.grid.hexes[o.target.y][o.target.x]);
 					this.activeCreature.abilities[o.id].animation2({
 						callback: opt.callback,
-						arg: args
+						arg: args,
 					});
 				}
 
@@ -1345,17 +1334,17 @@ export default class Game {
 					args.unshift(this.creatures[o.target.crea]);
 					this.activeCreature.abilities[o.id].animation2({
 						callback: opt.callback,
-						arg: args
+						arg: args,
 					});
 				}
 
 				if (o.target.type == 'array') {
-					let array = o.target.array.map(item => this.grid.hexes[item.y][item.x]);
+					let array = o.target.array.map((item) => this.grid.hexes[item.y][item.x]);
 
 					args.unshift(array);
 					this.activeCreature.abilities[o.id].animation2({
 						callback: opt.callback,
-						arg: args
+						arg: args,
 					});
 				}
 				break;
@@ -1366,7 +1355,7 @@ export default class Game {
 	getImage(url) {
 		let img = new Image();
 		img.src = url;
-		img.onload = function() {
+		img.onload = function () {
 			// No-op
 		};
 	}

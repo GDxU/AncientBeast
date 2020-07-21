@@ -20,8 +20,9 @@ export class Ability {
 		this.timesUsed = 0;
 		this.timesUsedThisTurn = 0;
 		this.token = 0;
+		this.upgraded = false;
 
-		let data = game.retreiveCreatureStats(creature.type);
+		let data = game.retrieveCreatureStats(creature.type);
 		$j.extend(true, this, game.abilities[data.id][abilityID], data.ability_info[abilityID]);
 		if (this.requirements === undefined && this.costs !== undefined) {
 			this.requirements = this.costs;
@@ -30,6 +31,10 @@ export class Ability {
 
 	hasUpgrade() {
 		return this.game.abilityUpgrades >= 0 && this.upgrade;
+	}
+
+	setUpgraded() {
+		this.upgraded = true;
 	}
 
 	/**
@@ -115,10 +120,10 @@ export class Ability {
 	 * End the ability. Must be called at the end of each ability function;
 	 *
 	 */
-	end(desableLogMsg, deferedEnding) {
+	end(disableLogMsg, deferredEnding) {
 		let game = this.game;
 
-		if (!desableLogMsg) {
+		if (!disableLogMsg) {
 			game.log('%CreatureName' + this.creature.id + '% uses ' + this.title);
 		}
 
@@ -129,7 +134,7 @@ export class Ability {
 		game.activeCreature.delayable = false;
 		game.UI.selectAbility(-1);
 
-		if (this.getTrigger() === 'onQuery' && !deferedEnding) {
+		if (this.getTrigger() === 'onQuery' && !deferredEnding) {
 			game.activeCreature.queryMove();
 		}
 	}
@@ -151,10 +156,8 @@ export class Ability {
 		} else {
 			this.used = false;
 			if (this.creature.id == game.activeCreature.id) {
-				if (this.id !== 0) {
-					// Passive
-					game.UI.abilitiesButtons[this.id].changeState('normal');
-				}
+				// Passive
+				game.UI.abilitiesButtons[this.id].changeState('normal');
 			}
 		}
 	}
@@ -169,7 +172,7 @@ export class Ability {
 		this.timesUsedThisTurn++;
 
 		// Update upgrade information
-		this.game.UI.updateAbilityButtonsContent();
+		this.game.UI.updateAbilityUpgrades();
 
 		// Configure score update for player
 		// When the ability is upgraded, add a single score bonus unique to that ability
@@ -179,10 +182,10 @@ export class Ability {
 			const bonus = {
 				type: 'upgrade',
 				ability: this.id,
-				creature: this.creature.id
+				creature: this.creature.id,
 			};
 
-			const find = scorePart =>
+			const find = (scorePart) =>
 				scorePart.type === bonus.type &&
 				scorePart.ability === bonus.ability &&
 				scorePart.creature === bonus.creature;
@@ -211,10 +214,10 @@ export class Ability {
 					target: {
 						type: 'hex',
 						x: arguments[0].x,
-						y: arguments[0].y
+						y: arguments[0].y,
 					},
 					id: this.id,
-					args: args
+					args: args,
 				});
 			}
 
@@ -225,10 +228,10 @@ export class Ability {
 					action: 'ability',
 					target: {
 						type: 'creature',
-						crea: arguments[0].id
+						crea: arguments[0].id,
 					},
 					id: this.id,
-					args: args
+					args: args,
 				});
 			}
 
@@ -236,16 +239,16 @@ export class Ability {
 				let args = $j.extend({}, arguments);
 				delete args[0];
 
-				let array = arguments[0].map(item => ({ x: item.x, y: item.y }));
+				let array = arguments[0].map((item) => ({ x: item.x, y: item.y }));
 
 				game.gamelog.add({
 					action: 'ability',
 					target: {
 						type: 'array',
-						array: array
+						array: array,
 					},
 					id: this.id,
-					args: args
+					args: args,
 				});
 			}
 		} else {
@@ -256,7 +259,7 @@ export class Ability {
 		}
 
 		return this.animation2({
-			arg: arguments
+			arg: arguments,
 		});
 	}
 
@@ -267,7 +270,7 @@ export class Ability {
 	 */
 	animation2(o) {
 		let game = this.game,
-			opt = $j.extend({ callback: function() {}, arg: {} }, o),
+			opt = $j.extend({ callback: function () {}, arg: {} }, o),
 			args = opt.arg,
 			activateAbility = () => {
 				this.activate(args[0], args[1]);
@@ -284,6 +287,8 @@ export class Ability {
 		p1 += this.creature.player.flipped ? 5 : -5;
 		p2 += this.creature.player.flipped ? -5 : 5;
 
+		this.creature.facePlayerDefault();
+
 		// Force creatures to face towards their target
 		if (args[0] instanceof Creature) {
 			this.creature.faceHex(args[0]);
@@ -297,7 +302,7 @@ export class Ability {
 			let animationData = {
 				duration: 500,
 				delay: 350,
-				activateAnimation: true
+				activateAnimation: true,
 			};
 
 			if (this.getAnimationData) {
@@ -321,7 +326,7 @@ export class Ability {
 			}, animationData.delay);
 
 			setTimeout(() => {
-				let queue = game.animationQueue.filter(item => item != animId);
+				let queue = game.animationQueue.filter((item) => item != animId);
 
 				if (queue.length === 0) {
 					game.freezedInput = false;
@@ -353,7 +358,7 @@ export class Ability {
 		let targets = {},
 			targetsList = [];
 
-		hexes.forEach(item => {
+		hexes.forEach((item) => {
 			if (item.creature instanceof Creature) {
 				if (targets[item.creature.id] === undefined) {
 					targets[item.creature.id] = { hexesHit: 0, target: item.creature };
@@ -400,7 +405,7 @@ export class Ability {
 				// TODO: don't manually list all the stats and masteries when needed
 				string += value.replace(
 					/%(health|regrowth|endurance|energy|meditation|initiative|offense|defense|movement|pierce|slash|crush|shock|burn|frost|poison|sonic|mental)%/g,
-					'<span class="$1"></span>'
+					'<span class="$1"></span>',
 				);
 				return;
 			}
@@ -435,7 +440,7 @@ export class Ability {
 				// TODO: don't manually list all the stats and masteries when needed
 				string += this.effects[i].special.replace(
 					/%(health|regrowth|endurance|energy|meditation|initiative|offense|defense|movement|pierce|slash|crush|shock|burn|frost|poison|sonic|mental)%/g,
-					'<span class="$1"></span>'
+					'<span class="$1"></span>',
 				);
 				continue;
 			}
@@ -464,7 +469,7 @@ export class Ability {
 
 			let dmg = new Damage(attacker, damages, targets[i].hexesHit, effects, this.game);
 			let damageResult = targets[i].target.takeDamage(dmg, {
-				ignoreRetaliation: ignoreRetaliation
+				ignoreRetaliation: ignoreRetaliation,
 			});
 			multiKill += damageResult.kill + 0;
 		}
@@ -484,9 +489,9 @@ export class Ability {
 	atLeastOneTarget(hexes, o) {
 		let defaultOpt = {
 			team: Team.both,
-			optTest: function() {
+			optTest: function () {
 				return true;
-			}
+			},
 		};
 
 		o = $j.extend(defaultOpt, o);
@@ -535,8 +540,8 @@ export class Ability {
 					frost: 0,
 					poison: 0,
 					sonic: 0,
-					mental: 0
-				}
+					mental: 0,
+				},
 			},
 			req = $j.extend(def, this.requirements),
 			abilityMsgs = game.msg.abilities;
@@ -653,7 +658,7 @@ export class Ability {
 			includeCreature: true,
 			stopOnCreature: true,
 			distance: 0,
-			sourceCreature: undefined
+			sourceCreature: undefined,
 		};
 
 		o = $j.extend(defaultOpt, o);

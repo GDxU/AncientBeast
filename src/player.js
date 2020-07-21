@@ -47,8 +47,8 @@ export class Player {
 
 		this.score = [
 			{
-				type: 'timebonus'
-			}
+				type: 'timebonus',
+			},
 		];
 	}
 
@@ -72,17 +72,17 @@ export class Player {
 
 	/* summon(type, pos)
 	 *
-	 * type :	String :	Creature type (ex: "0" for Dark Priest and "L2" for Magma Spawn)
+	 * type :	String :	Creature type (ex: "0" for Dark Priest and "G2" for Swampler)
 	 * pos :	Object :	Position {x,y}
 	 *
 	 */
 	summon(type, pos) {
 		let game = this.game,
-			data = game.retreiveCreatureStats(type),
+			data = game.retrieveCreatureStats(type),
 			creature;
 
 		data = $j.extend(data, pos, {
-			team: this.id
+			team: this.id,
 		}); // Create the full data for creature creation
 
 		for (let i = game.creatureData.length - 1; i >= 0; i--) {
@@ -132,7 +132,7 @@ export class Player {
 				immortal: 0,
 				total: 0,
 				pickupDrop: 0,
-				upgrade: 0
+				upgrade: 0,
 			};
 
 		for (let i = 0; i < total; i++) {

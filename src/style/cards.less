@@ -10,10 +10,11 @@
 	letter-spacing: -0.063em;
 	word-spacing: 0.081em;
 }
+
 /* Chrome Hack https://code.google.com/p/chromium/issues/detail?id=413183 */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
 	.card {
-		letter-spacing: 0.029em;
+		letter-spacing: 0.01em;
 		word-spacing: -0.1em;
 	}
 }
@@ -31,6 +32,8 @@
 }
 
 .sideA {
+	margin-right: -18px;
+
 	.info {
 		background: rgba(0, 0, 0, 0.7);
 		border-radius: 15px;
@@ -126,6 +129,7 @@
 		position: absolute;
 		left: 0;
 		top: 0;
+		background-color: rgba(0, 0, 0, 0.55);
 	}
 }
 
@@ -156,7 +160,7 @@
 
 		.info {
 			display: inline-block;
-			font-size: smaller;
+			font-size: 16px;
 		}
 	}
 }
@@ -226,17 +230,11 @@
 }
 
 #dash .stats:hover .stat {
-	border-top-left-radius: 10px;
-	border-top-right-radius: 10px;
-	border-bottom-left-radius: 0;
-	border-bottom-right-radius: 0;
+	border-radius: 10px;
 }
 
 #dash .masteries:hover .stat {
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
-	border-bottom-left-radius: 10px;
-	border-bottom-right-radius: 10px;
+	border-radius: 10px;
 }
 
 .stats:first-child .modifiers div {
